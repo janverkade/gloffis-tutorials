@@ -1,0 +1,70 @@
+# Historical streamflow simulations {#sec-historical-streamflow-simulations}
+
+## Introduction
+
+Some background about characteristics
+
+Historical streamflow simulations are produced at the level of model grids and at the level of forecast locations. These two levels come in separate .netcdf files.
+
+```{python preliminaries}
+import xarray as xr
+from matplotlib import cm, colors
+import cartopy.crs as ccrs
+```
+
+## Gridded data
+
+The data is supplied in a netCDF file called `wflow_sbm_meuse_20210730_update_era5.nc`. The file is first accessed and explored.
+
+```{python}
+sim_grid = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5.nc', mask_and_scale=True)
+```
+
+The file contains two variables of interest: `Q` and `warning_level`.
+
+First, we plot the gridded streamflow rates, at the arbitrarily chosen first time step.
+
+```{python messages=F, warning=F,echo=F}
+sim_grid.Q.isel(time=0).plot()
+```
+
+From the grid, we extract and then plot the timeseries at monitoring location Sint Pieter. Its latitude and longitude are 5.694536 and 50.815519, respectively. As we do not how to map this to the exact grid points, we look for the nearest grid point instead.
+
+```{python}
+sim_grid.Q.sel(x=5.694536, y=50.815519, method='nearest').plot()
+```
+
+Warning levels can be plotted in similar fashion, both as a grid and at a location extracted from that grid.
+
+```{python messages=F, warning=F,echo=F}
+sim_grid.warning_level.isel(time=0).plot()
+```
+
+```{python messages=F, warning=F,echo=F}
+sim_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
+```
+
+## Forecast locations
+
+Data at forecast locations is supplied in a separate file. In this case, the file is called `wflow_sbm_meuse_20210730_update_era5_discrete_locations.nc`.
+
+```{python}
+sim_locs = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5_discrete_locations.nc', mask_and_scale=True)
+sim_locs
+```
+
+This particular file contains timeseries at 19 forecast locations.
+
+```{python}
+sim_locs.station_names
+```
+
+We plot the streamflow rate and the warning level at the station with index 8:
+```{python}
+sim_locs.Q.isel(stations=8).plot()
+```
+
+```{python}
+sim_locs.warning_level.isel(stations=8).plot()
+```
+

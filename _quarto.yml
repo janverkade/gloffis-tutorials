@@ -1,0 +1,25 @@
+project:
+  type: book
+
+book:
+  title: "**gloffis** data access tutorials"
+  author: "Patricia Trambauer and Jan Verkade"
+  date: "December 26, 2022"
+  chapters:
+    - index.qmd
+    - streamflow_simulations.qmd
+    - medium_term_forecasts.qmd
+    - seasonal_forecasts.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+

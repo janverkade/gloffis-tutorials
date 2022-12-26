@@ -1,0 +1,19 @@
+# Medium-term forecasts {#sec-medium-term-forecasts}
+
+## Introduction
+
+Some background about characteristics
+
+## Exploring the .nc file
+
+Medium-term forecasts are produced at the level of model grids and at the level of forecast locations. These two levels come in separate .netcdf files.
+
+### Model grids
+
+asfd
+
+### Forecast locations
+
+asfd
+
+## Visualizations

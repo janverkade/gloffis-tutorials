@@ -1,0 +1,9 @@
+# Seasonal forecasts {#sec-seasonal-forecasts}
+
+Droughts are among the most far-reaching natural disasters that the world is facing today. In recent years, countries around the world have been severely impacted by droughts that cause decreases in food supply, in employment opportunities, and in energy production. Timely drought forecast infor-mation can assist local water managers, NGOs, water supply companies, the agricultural sector, the hydropower sector, the shipping sector, and (re)insurance companies through informing their decision-making process in order to prevent big drought impacts.
+
+The Deltares global hydrological forecasting service produces and makes available forecasts at both medium-range (out to approx. 10 days) and seasonal range (out to several months). The seasonal range forecasts are included for drought management purposes.
+
+The present document describes what the historical simulations and the forecasts look like, and how these can be used to derive information that can be useful in decision making. 
+
+

@@ -1,0 +1,43 @@
+# Introduction {#sec-introduction}
+In the present series of tutorials, it is shown how various `gloffis` data products can be accessed. Accompanied by brief introduction of the Deltares hydrological forecasting service its products.
+
+## The Deltares hydrological forecasting service {#sec-gloffis-intro}
+The forecasting system includes hydrological models of the wflow[^1] type. The hydrological model estimates the value of various variables including streamflow and actual evaporation rates and soil moisture levels. The output is gridded in nature; see @fig-streamflow-simulation-lempa for an example.
+
+[^1]: Additional information: [https://www.deltares.nl/en/software/wflow-hydrology](https://www.deltares.nl/en/software/wflow-hydrology)
+
+```{r}
+#| label: fig-streamflow-simulation-lempa
+#| echo: false
+#| fig-cap: >
+#|   September 8, 2021 model estimated streamflow rates in the Lempa basin
+#| fig-alt: >
+#|   September 8, 2021 model estimated streamflow rates in the Lempa basin
+#| out.width: NULL
+knitr::include_graphics("fig/streamflow_simulation_lempa_20210201.png")
+```
+
+Model simulations of the recent past are based on weather parameters estimated by the ERA5 product[^2]. Model simulations are available from 1981 through the present time. Into the future, the SEAS5 seasonal forecast product[^3] is used. These seasonal forecasts, that have been bias corrected, run from the current time until some months into the future. Both historical and forecasted time series are produced at grids.
+
+[^2]: Additional information: [https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5](https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5)
+[^3]: Additional information: [https://www.ecmwf.int/en/newsletter/154/meteorology/ecmwfs-new-long-range-forecast-ing-system-seas5](https://www.ecmwf.int/en/newsletter/154/meteorology/ecmwfs-new-long-range-forecast-ing-system-seas5)
+
+## Data access
+API and file-based. Currently, tutorial contains file-based approach only. API approach to follow.
+
+
+## Tutorials
+The tutorials include exploration and visualization of:
+
+-   historical streamflow simulations;
+
+-   medium-term forecasts;
+
+-   flood threshold exceedance probabilities;
+
+-   seasonal forecasts, and
+
+-   drought indicators.
+
+In @sec-medium-term-forecasts, you'll ...
+
