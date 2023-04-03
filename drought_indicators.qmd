@@ -1,4 +1,2 @@
-# References {.unnumbered}
+# Drought indicators {#sec-drought-indicators}
 
-::: {#refs}
-:::

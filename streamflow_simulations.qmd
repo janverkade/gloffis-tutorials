@@ -17,7 +17,8 @@ import cartopy.crs as ccrs
 The data is supplied in a netCDF file called `wflow_sbm_meuse_20210730_update_era5.nc`. The file is first accessed and explored.
 
 ```{python}
-sim_grid = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5.nc', mask_and_scale=True)
+sim_hist_grid = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5.nc', mask_and_scale=True)
+print(sim_hist_grid)
 ```
 
 The file contains two variables of interest: `Q` and `warning_level`.
@@ -25,23 +26,23 @@ The file contains two variables of interest: `Q` and `warning_level`.
 First, we plot the gridded streamflow rates, at the arbitrarily chosen first time step.
 
 ```{python messages=F, warning=F,echo=F}
-sim_grid.Q.isel(time=0).plot()
+sim_hist_grid.Q.isel(time=20).plot()
 ```
 
 From the grid, we extract and then plot the timeseries at monitoring location Sint Pieter. Its latitude and longitude are 5.694536 and 50.815519, respectively. As we do not how to map this to the exact grid points, we look for the nearest grid point instead.
 
 ```{python}
-sim_grid.Q.sel(x=5.694536, y=50.815519, method='nearest').plot()
+sim_hist_grid.Q.sel(x=5.694536, y=50.815519, method='nearest').plot()
 ```
 
 Warning levels can be plotted in similar fashion, both as a grid and at a location extracted from that grid.
 
 ```{python messages=F, warning=F,echo=F}
-sim_grid.warning_level.isel(time=0).plot()
+sim_hist_grid.warning_level.isel(time=20).plot()
 ```
 
 ```{python messages=F, warning=F,echo=F}
-sim_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
+sim_hist_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
 ```
 
 ## Forecast locations
@@ -49,22 +50,22 @@ sim_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
 Data at forecast locations is supplied in a separate file. In this case, the file is called `wflow_sbm_meuse_20210730_update_era5_discrete_locations.nc`.
 
 ```{python}
-sim_locs = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5_discrete_locations.nc', mask_and_scale=True)
-sim_locs
+sim_hist_locs = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5_discrete_locations.nc', mask_and_scale=True)
+print(sim_hist_locs)
 ```
 
 This particular file contains timeseries at 19 forecast locations.
 
 ```{python}
-sim_locs.station_names
+sim_hist_locs.station_names
 ```
 
 We plot the streamflow rate and the warning level at the station with index 8:
 ```{python}
-sim_locs.Q.isel(stations=8).plot()
+sim_hist_locs.Q.isel(stations=8).plot()
 ```
 
 ```{python}
-sim_locs.warning_level.isel(stations=8).plot()
+sim_hist_locs.warning_level.isel(stations=8).plot()
 ```
 

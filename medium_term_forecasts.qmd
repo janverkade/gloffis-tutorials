@@ -1,19 +1,59 @@
 # Medium-term forecasts {#sec-medium-term-forecasts}
 
+```{python preliminaries}
+import xarray as xr
+from matplotlib import cm, colors
+import cartopy.crs as ccrs
+```
+
 ## Introduction
 
-Some background about characteristics
+By medium-term forecasts we mean forecasts that go out several *days* into the future. Within gloffis, we use weather forecasts that have a maximum lead time of 5 to 7 days. The hydrological forecasts are produced through 'forcing' hydrological models with these weather forecasts. Currently, we use numerical weather prediction products from Germany's National Weather Service ([_Deutscher Wetterdienst_](https://www.dwd.de/en))
+
+### Warning levels
+For some rivers, 'warning levels' are available. These are computed from a 40-year historic model simulation run. Using extreme value statistics, these time series are used to compute streamflow rates for various average return periods: 2, 5, 10, 20 and 100 years. Operationally produced medium-term forecasts are compared with these 'thresholds' and an exceedance is flagged and given a 'warning level'.
 
 ## Exploring the .nc file
 
 Medium-term forecasts are produced at the level of model grids and at the level of forecast locations. These two levels come in separate .netcdf files.
 
+The data is supplied in a netCDF file called `wflow_sbm_meuse_20210730_update_era5.nc` where the date indicates the starting point of the forecast using yyyymmdd_hhmm notation (year-month-day_hour_minute). The file is first accessed and explored.
+
+```{python open_sim_fcst_grid}
+sim_grid = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5.nc', mask_and_scale=True)
+print(sim_grid)
+```
+
+The file contains two variables of interest: `Q` and `warning_level`.
+
 ### Model grids
 
-asfd
+First, we plot the gridded streamflow rates, at the arbitrarily chosen first time step.
+
+```{python plot_sim_fcst_grid, messages=F, warning=F,echo=F}
+sim_grid.Q.isel(time=0).plot()
+```
+
+Warning levels can be plotted in similar fashion, both as a grid and at a location extracted from that grid.
+
+```{python plot_warning_level_grid messages=F, warning=F,echo=F}
+sim_grid.warning_level.isel(time=0).plot()
+```
 
 ### Forecast locations
 
-asfd
+From the grid, we extract and then plot the timeseries at monitoring location Sint Pieter. Its latitude and longitude are 5.694536 and 50.815519, respectively. As we do not how to map this to the exact grid points, we look for the nearest grid point instead.
+
+First, we plot the forecast streamflow rate.
+
+```{python plot_sim_fcst_point}
+sim_grid.Q.sel(x=5.694536, y=50.815519, method='nearest').plot()
+```
+
+And then the warning level.
+
+```{python plot_warning_level_point messages=F, warning=F,echo=F}
+sim_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
+```
 
 ## Visualizations

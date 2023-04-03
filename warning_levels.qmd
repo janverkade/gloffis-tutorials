@@ -1,4 +1,2 @@
-# References {.unnumbered}
+# Warning levels {#sec-warning-levels}
 
-::: {#refs}
-:::

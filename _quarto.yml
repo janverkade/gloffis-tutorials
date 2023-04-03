@@ -10,6 +10,8 @@ book:
     - streamflow_simulations.qmd
     - medium_term_forecasts.qmd
     - seasonal_forecasts.qmd
+    - warning_levels.qmd
+    - drought_indicators.qmd
     - summary.qmd
     - references.qmd
 
