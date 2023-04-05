@@ -1,59 +1,86 @@
 # Medium-term forecasts {#sec-medium-term-forecasts}
 
+*Medium-term* forecasts go out several *days* into the future. In `gloffis`, the medium-term hydrological forecasts have a maximum lead time of 5 to 7 days. 
+
+`gloffis` medium-term forecasts always include streamflow rates. For some models, warning level forecasts are included also. These are computed from a 40-year historic model simulation run. Using extreme value statistics, these time series are used to compute streamflow rates for various average return periods: 1.5, 2, 5, 10, 20 and 100 years. The streamflow forecasts are compared with these thresholds and an exceedance is flagged and given a 'warning level'.
+
+Depending on which weather forecast scenario is used as inputs, a hydrological forecast may comprise either a single or multiple scenarios.
+
+## Forecast scenarios
+The hydrological forecasts are produced through 'forcing' hydrological models with weather forecasts. Currently, we use numerical weather prediction products from Germany's National Weather Service ([*Deutscher Wetterdienst*](https://www.dwd.de/en)). Some characteristics of these NWP products are included in below table.
+
+| NWP product | Coverage | Frequency | Max lead time [h]                                  | # scenarios |
+|-------------|----------|-----------|----------------------------------------------------|-------------|
+| icon        | global   | 4x daily  | 120 (06UTC and 18UTC) – 180 (00UTC and 12UTC runs) | 1           |
+| icon-eu     | Europe   | 4x daily  | 120                                                | 1           |
+| icon-eu-eps | global   | 4x daily  | 120 (06UTC and 18UTC) – 180 (00UTC and 12UTC runs) | 40          |
+
+The ensemble products comprise multiple scenarios. Each is assumed to be equally likely.
+
+The hydrological forecasts are given a scenario name which coincides with the weather forecasting product that was used as input.
+
+## Exploring the streamflow forecasts
+
+The present section includes an example of how a medium-term forecast, supplied as a netCDF file, may be explored. This example uses Python and the [xarray](https://docs.xarray.dev/) and [matplotlib](https://matplotlib.org) packages.
+
 ```{python preliminaries}
 import xarray as xr
-from matplotlib import cm, colors
-import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
 ```
 
-## Introduction
+Two forecast scenarios are explored: an icon-eu based forecast and an icon-eu-eps based forecast. The former scenario is deterministic, or single-valued, in nature; the latter is an ensemble product comprising of 40 scenarios.
 
-By medium-term forecasts we mean forecasts that go out several *days* into the future. Within gloffis, we use weather forecasts that have a maximum lead time of 5 to 7 days. The hydrological forecasts are produced through 'forcing' hydrological models with these weather forecasts. Currently, we use numerical weather prediction products from Germany's National Weather Service ([_Deutscher Wetterdienst_](https://www.dwd.de/en))
-
-### Warning levels
-For some rivers, 'warning levels' are available. These are computed from a 40-year historic model simulation run. Using extreme value statistics, these time series are used to compute streamflow rates for various average return periods: 2, 5, 10, 20 and 100 years. Operationally produced medium-term forecasts are compared with these 'thresholds' and an exceedance is flagged and given a 'warning level'.
-
-## Exploring the .nc file
-
-Medium-term forecasts are produced at the level of model grids and at the level of forecast locations. These two levels come in separate .netcdf files.
-
-The data is supplied in a netCDF file called `wflow_sbm_meuse_20210730_update_era5.nc` where the date indicates the starting point of the forecast using yyyymmdd_hhmm notation (year-month-day_hour_minute). The file is first accessed and explored.
+### Single-valued hydrological forecast
+The icon-eu based forecast is supplied in a netCDF file called `20230330_0000_wflow_sbm_meuse_20210730_forecast_icon-eu.nc` where the date indicates the starting point of the forecast using yyyymmdd_hhmm notation (year-month-day_hour_minute). In this case, this is the March 30, 2023, 00UTC forecast. The file is first accessed and explored.
 
 ```{python open_sim_fcst_grid}
-sim_grid = xr.open_dataset('data/wflow_sbm_meuse_20210730_update_era5.nc', mask_and_scale=True)
+sim_grid = xr.open_dataset('data/20230330_0000_wflow_sbm_meuse_20210730_forecast_icon-eu.nc', mask_and_scale=True)
 print(sim_grid)
 ```
 
-The file contains two variables of interest: `Q` and `warning_level`.
-
-### Model grids
-
-First, we plot the gridded streamflow rates, at the arbitrarily chosen first time step.
+The dataset contains the variable `Q` which is streamflow. We plot this variable at an arbitrarily chosen 10th time step.
 
 ```{python plot_sim_fcst_grid, messages=F, warning=F,echo=F}
-sim_grid.Q.isel(time=0).plot()
+sim_grid.Q.isel(time=10).plot()
 ```
-
-Warning levels can be plotted in similar fashion, both as a grid and at a location extracted from that grid.
-
-```{python plot_warning_level_grid messages=F, warning=F,echo=F}
-sim_grid.warning_level.isel(time=0).plot()
-```
-
-### Forecast locations
 
 From the grid, we extract and then plot the timeseries at monitoring location Sint Pieter. Its latitude and longitude are 5.694536 and 50.815519, respectively. As we do not how to map this to the exact grid points, we look for the nearest grid point instead.
-
-First, we plot the forecast streamflow rate.
 
 ```{python plot_sim_fcst_point}
 sim_grid.Q.sel(x=5.694536, y=50.815519, method='nearest').plot()
 ```
 
-And then the warning level.
+### Ensemble hydrological forecast
 
-```{python plot_warning_level_point messages=F, warning=F,echo=F}
-sim_grid.warning_level.sel(x=5.694536, y=50.815519, method='nearest').plot()
+The icon-eu-eps based forecast is supplied in a netCDF file called `20230330_0000_wflow_sbm_meuse_20210730_forecast_icon-eu-eps.nc`. The file is first accessed and a summary of its contents is printed.
+
+```{python open_ens_sim_fcst_grid}
+sim_grid = xr.open_dataset('data/20230329_0000_wflow_sbm_meuse_20210730_forecast_icon-eu-eps.nc', mask_and_scale=True)
+print(sim_grid)
 ```
 
-## Visualizations
+Note that this file contains 40 scenarios which, in the xarray output, are called *realizations*. We plot ensemble member 12 (which, by Python convention, has index 11)
+
+```{python plot_sim_fcst_grid, messages=F, warning=F,echo=F}
+sim_grid.Q.isel(time=10, realization = 11).plot()
+```
+
+From the grid, we extract and then plot the timeseries for that same ensemble member at monitoring location Sint Pieter.
+
+```{python plot_single_realization messages=F}
+sim_grid.Q.sel(x=5.694536, y=50.815519, realization=11, method='nearest').plot()
+```
+
+Then we plot all ensemble realizations.
+
+```{python plot_sim_fcst_point, messages=F}
+Q = sim_grid.Q.sel(x=5.694536, y=50.815519, method='nearest')
+fig, ax = plt.subplots()
+for i in range(Q.shape[0]):
+  ax.plot(Q['time'].values, Q.values[:,i], color='gray', alpha=0.5)
+ax.set_xlabel('Time')
+ax.set_ylabel('Streamflow [m3/s]')
+ax.set_title('Plume plot')
+plt.show()
+```
+

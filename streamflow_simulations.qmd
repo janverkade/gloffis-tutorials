@@ -2,9 +2,10 @@
 
 ## Introduction
 
-Some background about characteristics
+Model simulations of the recent past are based on weather parameters estimated by the ERA5 product[^index-2]. Model simulations are available from 1981 through the present time. Historical streamflow simulations are produced at two levels: at model grids and at forecast locations. These two levels come in separate .netcdf files.
 
-Historical streamflow simulations are produced at the level of model grids and at the level of forecast locations. These two levels come in separate .netcdf files.
+[^index-2]: Additional information: <https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5>
+
 
 ```{python preliminaries}
 import xarray as xr

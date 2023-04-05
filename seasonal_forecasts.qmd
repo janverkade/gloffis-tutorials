@@ -1,9 +1,99 @@
 # Seasonal forecasts {#sec-seasonal-forecasts}
 
-Droughts are among the most far-reaching natural disasters that the world is facing today. In recent years, countries around the world have been severely impacted by droughts that cause decreases in food supply, in employment opportunities, and in energy production. Timely drought forecast infor-mation can assist local water managers, NGOs, water supply companies, the agricultural sector, the hydropower sector, the shipping sector, and (re)insurance companies through informing their decision-making process in order to prevent big drought impacts.
+Seasonal forecasts go out several *months* into the future. In `gloffis`, the seasonal hydrological forecasts have a maximum lead time of 4 months.
 
-The Deltares global hydrological forecasting service produces and makes available forecasts at both medium-range (out to approx. 10 days) and seasonal range (out to several months). The seasonal range forecasts are included for drought management purposes.
+`gloffis` seasonal forecasts always include streamflow rates. In some cases, *drought indicators* are included also.
 
-The present document describes what the historical simulations and the forecasts look like, and how these can be used to derive information that can be useful in decision making. 
+## Forecast scenarios
+Hydrological forecasts are produced through 'forcing' hydrological models with weather forecasts. For seasonal forecasts, we use the [seas5](https://cds.climate.copernicus.eu/cdsapp#!/dataset/seasonal-original-single-levels) numerical weather prediction product from the European Centre for Medium-Range Weather Forecasts ([ECMWF](www.ecmwf.int)). Some characteristics of this product are included in below table.
 
+| NWP product | Coverage | Frequency  | Max lead time [mo]  | # scenarios |
+|-------------|----------|------------|---------------------|-------------|
+| seas5       | global   | 1x monthly | 4                   | 51          |
 
+The seas5 product comprises multiple scenarios. Each is assumed to be equally likely.
+
+## Exploring the seasonal forecasts
+
+The present section includes an example of how a seasonal forecast, supplied as a netCDF file, may be explored. This example uses Python and the [xarray](https://docs.xarray.dev/) and [matplotlib](https://matplotlib.org) packages.
+
+```{python preliminaries}
+import xarray as xr
+import matplotlib.pyplot as plt
+```
+
+### Streamflow forecast
+The seas5 based forecast is supplied in a netCDF file called `20230330_0000_wflow_sbm_meuse_20210730_forecast_icon-eu.nc` where the date indicates the starting point of the forecast using yyyymmdd_hhmm notation (year-month-day_hour_minute). In this case, this is the March 30, 2023, 00UTC forecast. The file is first accessed and a summary of its contents is printed.
+
+```{python open_sim_fcst_grid}
+sim_grid = xr.open_dataset('data/20230312_0000_wflow_sbm_lempa_20210326_forecast_seas5.nc', mask_and_scale=True)
+print(sim_grid)
+```
+
+We explore the analysis time (the start time) and the temporal range of the forecast.
+
+```{python plot_sim_fcst_times}
+print(sim_grid.analysis_time)
+print(sim_grid.time)
+```
+
+This forecast contains 40 scenarios which, in the xarray output, are called *realizations*. We plot ensemble member 12 (which, by Python convention, has index 11) at an arbitrarily chosen time in the future.
+
+```{python plot_sim_fcst_grid, messages=F, warning=F,echo=F}
+sim_grid.Q.sel(time='2023-05-01', realization = 11).plot()
+```
+
+From the grid, we extract and then plot the timeseries for that same ensemble member at the outlet.
+
+```{python plot_single_realization messages=F}
+sim_grid.Q.sel(x=-88.821, y=13.254, realization=11, method='nearest').plot()
+```
+
+Then we plot all ensemble realizations.
+
+```{python plot_sim_fcst_point, messages=F}
+Q = sim_grid.Q.sel(x=-88.821, y=13.254, method='nearest')
+fig, ax = plt.subplots()
+for i in range(Q.shape[1]):
+  ax.plot(Q['time'].values, Q.values[:,i], color='gray', alpha=0.5)
+ax.set_xlabel('Time')
+ax.set_ylabel('Streamflow [m3/s]')
+ax.set_title('Plume plot')
+plt.show()
+```
+
+### Drought indicators
+
+The seas5 based drought indicators forecast is supplied in a netCDF file called `20230312_0000_wflow_sbm_lempa_20210326_forecast_seas5_drought_indicators.nc`. The file is first accessed and a summary of its contents is printed.
+
+```{python open_sim_fcst_drought_indicators}
+sim_grid = xr.open_dataset('data/20230312_0000_wflow_sbm_lempa_20210326_forecast_seas5_drought_indicators.nc', mask_and_scale=True)
+print(sim_grid)
+```
+
+In the contents above, we see that the file contains three variables: `qa`, `smdi` and `etdi`. These are subsequently plotted in below plots.
+
+```{python plot_qa_grid, messages=F, warning=F,echo=F}
+sim_grid.qa.sel(time='2023-06-01', realization = 11).plot()
+```
+
+```{python plot_smdi_grid, messages=F, warning=F,echo=F}
+sim_grid.smdi.sel(time='2023-06-01', realization = 11).plot()
+```
+
+```{python plot_etdi_grid, messages=F, warning=F,echo=F}
+sim_grid.etdi.sel(time='2023-06-01', realization = 11).plot()
+```
+
+Below plot shows the ensemble of discharge anomaly at the outlet.
+
+```{python plot_sim_fcst_point, messages=F}
+Q = sim_grid.qa.sel(x=-88.821, y=13.254, method='nearest')
+fig, ax = plt.subplots()
+for i in range(Q.shape[1]):
+  ax.plot(Q['time'].values, Q.values[:,i], color='gray', alpha=0.5)
+ax.set_xlabel('Time')
+ax.set_ylabel('qa [-]')
+ax.set_title('Discharge anomaly')
+plt.show()
+```

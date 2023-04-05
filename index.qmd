@@ -1,6 +1,6 @@
 # Introduction {#sec-introduction}
 
-In the present series of tutorials, it is shown how various `gloffis` data products can be accessed. Accompanied by brief introduction of the Deltares hydrological forecasting service its products.
+In the present series of tutorials, it is shown how various `gloffis` data products can be accessed. The explanations are accompanied by a very brief introduction of the Deltares hydrological forecasting service its products.
 
 ## The Deltares hydrological forecasting service {#sec-gloffis-intro}
 
@@ -19,28 +19,12 @@ The forecasting system includes hydrological models of the wflow[^index-1] type.
 knitr::include_graphics("fig/streamflow_simulation_lempa_20210201.png")
 ```
 
-Model simulations of the recent past are based on weather parameters estimated by the ERA5 product[^index-2]. Model simulations are available from 1981 through the present time. Into the future, the SEAS5 seasonal forecast product[^index-3] is used. These seasonal forecasts, that have been bias corrected, run from the current time until some months into the future. Both historical and forecasted time series are produced at grids.
-
-[^index-2]: Additional information: <https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5>
-
-[^index-3]: Additional information: <https://www.ecmwf.int/en/newsletter/154/meteorology/ecmwfs-new-long-range-forecast-ing-system-seas5>
-
-## Data access
-
-API and file-based. Currently, tutorial contains file-based approach only. API approach to follow.
-
 ## Tutorials
 
-The tutorials include exploration and visualization of:
+The tutorials include exploration of:
 
 -   historical streamflow simulations;
+-   medium-term forecasts, and
+-   seasonal forecasts.
 
--   medium-term forecasts;
-
--   flood threshold exceedance probabilities;
-
--   seasonal forecasts, and
-
--   drought indicators.
-
-In @sec-medium-term-forecasts, you'll ...
+And also includes a section on visualization examples.

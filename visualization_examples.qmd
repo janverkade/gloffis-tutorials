@@ -1,0 +1,137 @@
+# Visualization examples {#sec-seasonal-forecast-visualization}
+
+The present chapter shows various possible visualizations of seasonal forecast data. We'll use the [Lempa river](https://en.wikipedia.org/wiki/Lempa_River) forecasts as a case study. Streamflow data will focus on [its outlet](https://goo.gl/maps/g3ZYN8eQz4oKN6d89) and drought indicator data will be used for an arbitrarily chosen location in the basin.
+
+## Data extraction
+The extraction of data from grids is done using Python's xarray package. Data is read from two sources: a file containing a climatology of river flow simulations and a file containing the March 2023 streamflow forecast. The data at the outlet is written to a .csv file. Note that, as the climatology is mapped to the year 1600, Python is likely to give a warning message about this.
+
+```{python access_netcdf_files, warning=F, echo=T, output=F, error=F, eval=F}
+import xarray as xr
+clim = xr.open_dataset('data/wflow_sbm_lempa_20210326_climatology.nc', mask_and_scale=True)
+clim.Q.sel(x=-88.821, y=13.254, method='nearest').to_dataframe().to_csv('data/lempa_climatology_Q.csv')
+clim.close()
+
+fcst = xr.open_dataset('data/20230312_0000_wflow_sbm_lempa_20210326_forecast_seas5.nc', mask_and_scale=True)
+fcst.Q.sel(x=-88.821, y=13.254, method='nearest').to_dataframe().to_csv('data/lempa_forecast_Q.csv')
+fcst.close()
+
+fcst = xr.open_dataset('data/20230312_0000_wflow_sbm_lempa_20210326_forecast_seas5_drought_indicators.nc', mask_and_scale=True)
+fcst.smdi.sel(x=-89.071, y=14.379, method='nearest').to_dataframe().to_csv('data/lempa_forecast_smdi.csv')
+fcst.close()
+```
+
+## Plotting: streamflow
+
+Plotting is done using R.
+```{r preliminaires, echo=T, output=F}
+rm(list=objects())
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+```
+
+First, we read the data from file and combine both forecast and climatology in a single dataframe.
+```{r read_data}
+fcst <- read.csv('data/lempa_forecast_Q.csv'); fcst$type <- 'forecast'
+clim <- read.csv('data/lempa_climatology_Q.csv'); clim$type <- 'climatology'
+data <- rbind(fcst, clim); rm(fcst); rm(clim)
+data <- data %>% na.omit() %>% mutate(time = as.Date(time)) %>% rename(date = time)
+```
+
+### Streamflow climatology
+The first plot shows the climatology: each of the traces is a streamflow simulation of any of the 40 years 1981 through 2020.
+```{r plot_climatology, warning=F}
+clim <- subset(data, type == 'climatology')
+ggplot(clim, aes(x=date, y=Q, group=realization)) +
+  geom_line(size = 0.3) +
+  scale_x_date(date_breaks = 'month', date_labels ='%b') +
+  labs(title='Lempa basin, 1981 - 2020 climatology',
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('Streamflow [m3/s')
+```
+
+We then show the same data but replace the traces by quantiles.
+```{r plot_climatology_quantiles, warning=F, output=T}
+probs = c(0:100)/100
+quantiles <- clim %>% group_by(date) %>% summarise(x = quantile(Q, probs), q = paste0('q',sprintf('%03.0f',probs*100)))
+q2 <- quantiles %>% spread(key=q, value=x)
+ggplot(q2, aes(x=date) ) +
+  geom_ribbon(aes(x=date, ymin=q005, ymax = q095), fill = 'grey50') +
+  geom_ribbon(aes(x=date, ymin=q010, ymax = q090), fill = 'grey60') +
+  geom_ribbon(aes(x=date, ymin=q025, ymax = q075), fill = 'grey70') +
+  geom_line(aes(x=date, y=q060), size=1, color = 'grey95') +
+  scale_x_date(date_breaks = 'month', date_labels ='%b') +
+  labs(title='Lempa basin, 1981 - 2020 climatology',
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('Streamflow [m3/s]')
+```
+### Streamflow forecast
+We also plot the forecast: 51 scenarios.
+```{r plot_forecast, warning=F}
+fcst <- subset(data, type == 'forecast')
+ggplot(fcst, aes(x=date, y=Q, group=realization)) +
+  geom_line(size = 0.5) +
+  scale_x_date(date_breaks = 'months', date_labels ='%b %d\n%Y') +
+  labs(title='Lempa basin, streamflow forecast, near outlet',
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('Streamflow [m3/s]')
+```
+Finally, we combine the forecast with the climatology.
+```{r plot_forecast_bins, warning=F}
+q2 <- q2 %>% mutate(date = ymd(paste0('2023',sprintf("%02.0f",month(date)),sprintf("%02.0f",day(date)))))
+fcst <- fcst %>% left_join(q2, by='date') %>% rowwise() %>%
+  mutate(bin = cut(Q,breaks=c(0,q010,q050,q090,Inf),labels=c('very dry','below average','above average','very wet'))) %>%
+  select(-c('q000','q010','q050','q090','q100')) %>% group_by(date, bin) %>% count %>% summarise(prob = n/51)
+fcst$bin <- factor(fcst$bin, levels=c('very dry','below average','above average','very wet'))
+
+ggplot(fcst, aes(x=date, y=prob, group = bin, colour=bin, fill=bin)) +
+  geom_bar(position=position_stack(reverse=T), stat="identity") +
+  scale_color_manual(values=c('#FFCC00','#99CC33','#33CCCC','#3399FF') ) +
+  scale_fill_manual(values=c('#FFCC00','#99CC33','#33CCCC','#3399FF') ) +
+  scale_x_date(date_breaks = 'months', date_labels ='%b %d\n%Y') +
+  labs(title='Lempa basin, streamflow forecast, near outlet',
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('probability [-]') +
+  theme(legend.direction = 'horizontal',
+        legend.position = 'bottom')
+```
+
+## Plotting: Soil Moisture Deficit Index
+```{r}
+rm(list=objects())
+bins <- read.csv(file='data/drought_severity_levels.csv',as.is=T)
+fcst <- read.csv(file='data/lempa_forecast_smdi.csv', as.is=T)
+fcst <- fcst %>% na.omit() %>% mutate(time = as.Date(time)) %>% rename(date = time)
+```
+
+### SMDI forecast: traces
+First, we plot the SMDI forecast.
+```{r plot_smdi_forecast}
+ggplot(fcst, aes(x=date, y=smdi, group=realization)) +
+  geom_line(size = 0.5) +
+  scale_x_date(date_breaks = 'months', date_labels ='%b %d\n%Y') +
+  labs(title='Lempa basin, SMDI at randomly chosen location',
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('smdi [-]')
+```
+
+### SMDI forecast: bins
+We then bin the forecast into various classes and plot the probability of each of these classes occurring.
+```{r plot_smdi_forecast_bins}
+fcst <- fcst %>% rowwise() %>% mutate(bin = cut(smdi,breaks=c(bins$lower_bound,Inf),labels=bins$category)) %>%
+  group_by(date, bin) %>% count %>% summarise(prob = n/51) %>% mutate(bin = factor(bin, levels=bins$category))
+
+my_title <- 'Drought/wetness conditions as estimated through the Soil Moisture Deficit Index'
+ggplot(fcst, aes(x=date, y=prob, group = bin, colour=bin, fill=bin)) +
+  geom_bar(position=position_stack(reverse=T), stat="identity") +
+  #scale_color_manual(values=c('#FFCC00','#99CC33','#33CCCC','#3399FF') ) +
+  #scale_fill_manual(values=c('#FFCC00','#99CC33','#33CCCC','#3399FF') ) +
+  scale_x_date(date_breaks = 'months', date_labels ='%b %d\n%Y') +
+  labs(title=my_title,
+       caption='(c) Deltares, 2023. gloffis.info@deltares.nl') +
+  xlab(NULL) + ylab('probability [-]') +
+  theme(legend.direction = 'horizontal',
+        legend.position = 'bottom')
+```
+

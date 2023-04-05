@@ -1,0 +1,10 @@
+bin,lower_bound,upper_bound,category
+1,-999,-2,Extremely dry
+2,-2,-1.5,Severely dry
+3,-1.5,-1,Moderately dry
+4,-1,-0.5,Mildly dry
+5,-0.5,0.5,Normal
+6,0.5,1,Mildly wet
+7,1,1.5,Moderately wet
+8,1.5,2,Severely wet
+9,2,999,Extremely wet
